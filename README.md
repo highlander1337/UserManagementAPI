@@ -15,3 +15,8 @@
 * Prompt copilot to add Exception Handle Middleware to handle internal server issues.
 * Prompt copilot to add simple correlation id structure to Exception Handle Middleware for tracking.
 * Prompt copilot to add pagination in get operation to enhance performance
+
+## Phase 3 - Add logging and authentication middleware
+
+* Prompt copilot to add console logging when an request occurs with correlation id for tracking.
+* Prompt copilot to add a simple middleware token authentication hard coded or via file.
