@@ -17,7 +17,7 @@ public class UsersController : ControllerBase
 
     // GET api/users
     [HttpGet]
-    [ProducesResponseType(typeof(UserListResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<UserListResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetAll()
     {
@@ -39,14 +39,15 @@ public class UsersController : ControllerBase
 
     // POST api/users
     [HttpPost]
-    [ProducesResponseType(typeof(UserCreateResonse), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(UserCreateResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create([FromBody] UserCreateRequest dto)
     {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
 
         var result = await _repo.CreateAsync(dto);
-        if (result == null) return BadRequest(new {Message = "Failed to create user." });
-        return CreatedAtAction(nameof(GetById), new { id = result.Id }, dto);
+        if (result == null) return BadRequest(new { Message = "Failed to create user. Email may already exist." });
+        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
     // PUT api/users/{id}
@@ -55,8 +56,10 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Update(Guid id, [FromBody] UserUpdateRequest dto)
     {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+
         var updated = await _repo.UpdateAsync(id, dto);
-        if (updated == null) return BadRequest(new { Message = "Failed to update user." });
+        if (updated == null) return BadRequest(new { Message = "Failed to update user. User may not exist or email is already in use." });
         return Ok(updated);
     }
 
