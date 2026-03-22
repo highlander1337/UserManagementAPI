@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using UserManagementAPI.Entities;
 using UserManagementAPI.Models.User;
 
@@ -69,6 +70,15 @@ public class InMemoryUserRepository : IUserRepository
 
     public Task<UserCreateResponse?> CreateAsync(UserCreateRequest user)
     {
+        // validate input
+        if (user == null) return Task.FromResult<UserCreateResponse?>(null);
+        if (string.IsNullOrWhiteSpace(user.FirstName) || string.IsNullOrWhiteSpace(user.LastName) || string.IsNullOrWhiteSpace(user.Email))
+            return Task.FromResult<UserCreateResponse?>(null);
+
+        var emailValidator = new EmailAddressAttribute();
+        if (!emailValidator.IsValid(user.Email))
+            return Task.FromResult<UserCreateResponse?>(null);
+
         var newUser = new Users
         {
             Id = Guid.NewGuid(),
@@ -99,6 +109,15 @@ public class InMemoryUserRepository : IUserRepository
 
     public Task<UserUpdateResponse?> UpdateAsync(Guid id, UserUpdateRequest user)
     {
+        // validate input
+        if (user == null) return Task.FromResult<UserUpdateResponse?>(null);
+        if (string.IsNullOrWhiteSpace(user.FirstName) || string.IsNullOrWhiteSpace(user.LastName) || string.IsNullOrWhiteSpace(user.Email))
+            return Task.FromResult<UserUpdateResponse?>(null);
+
+        var emailValidator = new EmailAddressAttribute();
+        if (!emailValidator.IsValid(user.Email))
+            return Task.FromResult<UserUpdateResponse?>(null);
+
         lock (_lock)
         {
             var existing = _users.FirstOrDefault(u => u.Id == id);

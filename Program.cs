@@ -1,8 +1,16 @@
+
+
+using Microsoft.AspNetCore.Mvc;
+using UserManagementAPI.Middlewares;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
+// Disable automatic 400 responses so controllers can return custom ValidationProblemDetails
+builder.Services.Configure<ApiBehaviorOptions>(options => options.SuppressModelStateInvalidFilter = true);
+
 // Register in-memory user repository
 builder.Services.AddSingleton<UserManagementAPI.Services.IUserRepository, UserManagementAPI.Services.InMemoryUserRepository>();
 // Swagger / OpenAPI
@@ -14,19 +22,20 @@ builder.Services.AddOpenApi();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+// Global error handling should be first to capture unhandled exceptions
+app.UseMiddleware<ErrorHandlingMiddleware>();
 if (app.Environment.IsDevelopment())
 {
-    // Minimal APIs OpenAPI mapping (if present) and Swagger UI for Swashbuckle
-    app.MapOpenApi();
+    // Enable Swagger UI in development
     app.UseSwagger();
     app.UseSwaggerUI();
+    // Map minimal API OpenAPI endpoints if present
+    app.MapOpenApi();
 }
 
-// Ensure Swagger is available in non-development if desired (optional)
-// app.UseSwagger();
-// app.UseSwaggerUI();
-
+// Common middleware ordering
 app.UseHttpsRedirection();
+app.UseRouting();
 
 app.UseAuthorization();
 
