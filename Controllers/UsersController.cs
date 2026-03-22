@@ -15,15 +15,19 @@ public class UsersController : ControllerBase
         _repo = repo;
     }
 
-    // GET api/users
+    // GET api/users?pageNumber=1&pageSize=10
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<UserListResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(UserPagedResult), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
-        var users = await _repo.GetAllAsync();
-        if (!users.Any()) return NotFound(new { Message = "No users found in the system." });
-        return Ok(users);
+        if (pageNumber < 1) pageNumber = 1;
+        if (pageSize < 1) pageSize = 10;
+        if (pageSize > 100) pageSize = 100;
+
+        var result = await _repo.GetAllAsync(pageNumber, pageSize);
+        if (result.TotalCount == 0) return NotFound(new { Message = "No users found in the system." });
+        return Ok(result);
     }
 
     // GET api/users/{id}

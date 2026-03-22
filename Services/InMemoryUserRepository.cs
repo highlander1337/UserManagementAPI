@@ -20,19 +20,33 @@ public class InMemoryUserRepository : IUserRepository
         });
     }
 
-    public Task<IEnumerable<UserListResponse>> GetAllAsync()
+    public Task<UserPagedResult> GetAllAsync(int pageNumber = 1, int pageSize = 10)
     {
         lock (_lock)
         {
-            var userList = _users.Select(u => new UserListResponse
-            {
-                Id = u.Id,
-                FirstName = u.FirstName,
-                LastName = u.LastName,
-                Email = u.Email
-            }).ToList();
+            var total = _users.Count;
+            var skip = (pageNumber - 1) * pageSize;
+            var items = _users
+                .Skip(skip)
+                .Take(pageSize)
+                .Select(u => new UserListResponse
+                {
+                    Id = u.Id,
+                    FirstName = u.FirstName,
+                    LastName = u.LastName,
+                    Email = u.Email
+                })
+                .ToList();
 
-            return Task.FromResult<IEnumerable<UserListResponse>>(userList);
+            var result = new UserPagedResult
+            {
+                Items = items,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalCount = total
+            };
+
+            return Task.FromResult(result);
         }
     }
 
